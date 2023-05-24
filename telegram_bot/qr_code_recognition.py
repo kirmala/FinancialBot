@@ -10,10 +10,8 @@ def read_qr_code_from_file(qr_code_filename):
 
 def read_qr_code_from_bytes(qr_code_bytes):
     img = cv2.imdecode(qr_code_bytes, cv2.IMREAD_COLOR)
-    cv2.imwrite('test.jpg', img)
     detect = cv2.QRCodeDetector()
     value, points, straight_qrcode = detect.detectAndDecode(img)
-
     return value
 
 # dir_name = os.path.dirname(__file__)

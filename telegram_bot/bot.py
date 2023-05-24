@@ -20,28 +20,30 @@ dp = Dispatcher(bot)
     
 @dp.message_handler(commands=['info', 'help', 'start'])
 async def give_info(message: types.Message):
-    await message.reply(
-        f"Hi {message.from_user.first_name},\nthis bot takes qr-code and adds info about your purchase into database")
+    await message.answer(f"Hi {message.from_user.first_name},\nthis bot takes qr-code and adds info about your purchase into database")
 
-@dp.message_handler(commands=['take_photo'])
-async def take_photo(message: types.Message):
-    @dp.message_handler(content_types=['photo'])
-    async def respond_photo(message: types.Message):
-        #add_user(message.chat['id'], message.date)
-        qr_code_bytes = BytesIO()
-        await message.photo[-1].download(destination_file = qr_code_bytes)
-        qr_code_bytes = qr_code_bytes.getvalue()
-        qr_code_bytes = np.frombuffer(qr_code_bytes, dtype=np.int8)
-        qr_code_text = read_qr_code_from_bytes(qr_code_bytes)
-        if qr_code_text == '':
-            qr_code_text = 'Can not extract qr-code'
-            await message.reply(qr_code_text)
-        else:
-            user_id, retail_place_address, items = get_info(qr_code_text)
-            goods = ''
-            for item in items:
-                goods += (f"{item['name']} {item['price'] / 100} ✕ {item['quantity']}    {item['sum'] / 100}\n")
-            await message.reply(goods)
+
+@dp.message_handler(content_types=['photo'])
+async def respond_photo(message: types.Message):
+    #add_user(message.chat['id'], message.date)
+    qr_code_bytes = BytesIO()
+    await message.photo[-1].download(destination_file = qr_code_bytes)
+    qr_code_bytes = qr_code_bytes.getvalue()
+    qr_code_bytes = np.frombuffer(qr_code_bytes, dtype=np.int8)
+    qr_code_text = read_qr_code_from_bytes(qr_code_bytes)
+    if qr_code_text == '':
+        qr_code_text = 'Can not extract qr-code'
+        await message.answer(qr_code_text)
+    else:
+        is_answered = True
+        user_id, retail_place_address, items = get_info(qr_code_text)
+        goods = ''
+        for item in items:
+            goods += (f"{item['name']} {item['price'] / 100} ✕ {item['quantity']}    {item['sum'] / 100}\n")
+        await message.answer(f'{goods}, /help')
+
+
+
 
 if __name__ == '__main__':
     executor.start_polling(dp)
