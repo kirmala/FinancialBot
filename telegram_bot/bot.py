@@ -7,8 +7,9 @@ from io import BytesIO
 import numpy as np
 import requests
 from bs4 import BeautifulSoup
-from data_service import add_user
+from data_service import add_user, add_check
 import random
+import datetime
 
 logging.basicConfig(level=logging.INFO)
 
@@ -25,7 +26,9 @@ async def give_info(message: types.Message):
 
 @dp.message_handler(content_types=['photo'])
 async def respond_photo(message: types.Message):
-    #add_user(message.chat['id'], message.date)
+    tg_user_id = str(message.chat.id)
+    create_date = message.date
+    add_user(tg_user_id, create_date)
     qr_code_bytes = BytesIO()
     await message.photo[-1].download(destination_file = qr_code_bytes)
     qr_code_bytes = qr_code_bytes.getvalue()
@@ -35,12 +38,12 @@ async def respond_photo(message: types.Message):
         qr_code_text = 'Can not extract qr-code'
         await message.answer(qr_code_text)
     else:
-        is_answered = True
-        user_id, retail_place_address, items = get_info(qr_code_text)
+        check_place, check_items, check_sum, check_fd, check_fn, check_fpd, check_date = get_info(qr_code_text)
+        add_check(check_fn, check_fd, check_fpd, tg_user_id, '1ofd', check_place, check_sum, check_date)
         goods = ''
-        for item in items:
+        for item in check_items:
             goods += (f"{item['name']} {item['price'] / 100} ✕ {item['quantity']}    {item['sum'] / 100}\n")
-        await message.answer(f'{goods}, /help')
+        await message.answer(f'{goods}')
 
 
 

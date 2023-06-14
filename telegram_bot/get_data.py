@@ -7,7 +7,15 @@ def get_link(qr_code_text):
 def get_info(qr_code_text):
     link = get_link(qr_code_text)
     ticket = requests.get(link, allow_redirects=True).json()
-    return ticket['orgId'], ticket['retailPlaceAddress'], ticket['ticket']['items']
+    return (
+            ticket['retailPlaceAddress'],
+            ticket['ticket']['items'],
+            float(ticket['ticket']['options']['totalSum']) / 100,
+            int(ticket['ticket']['fiscalDocumentNumber']),
+            int(ticket['ticket']['fiscalDriveNumber']),
+            int(ticket['ticket']['fiscalId']),
+            ticket['ticket']['insertedAt'][:10]
+            )
 
 
 
