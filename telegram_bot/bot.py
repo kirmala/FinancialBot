@@ -7,9 +7,10 @@ from io import BytesIO
 import numpy as np
 import requests
 from bs4 import BeautifulSoup
-from data_service import add_user, add_check
+from data_service import add_user, add_receipt, add_items
 import random
 import datetime
+import uuid
 
 logging.basicConfig(level=logging.INFO)
 
@@ -38,11 +39,13 @@ async def respond_photo(message: types.Message):
         qr_code_text = 'Can not extract qr-code'
         await message.answer(qr_code_text)
     else:
-        check_place, check_items, check_sum, check_fd, check_fn, check_fpd, check_date = get_info(qr_code_text)
-        add_check(check_fn, check_fd, check_fpd, tg_user_id, '1ofd', check_place, check_sum, check_date)
+        receipt_place, receipt_items, receipt_sum, receipt_fd, receipt_fn, receipt_fpd, receipt_date = get_info(qr_code_text)
+        receipt_id = str(uuid.uuid4())
+        add_receipt(receipt_fn, receipt_fd, receipt_fpd, tg_user_id, '1ofd', receipt_place, receipt_sum, receipt_date, receipt_id)
         goods = ''
-        for item in check_items:
+        for item in receipt_items:
             goods += (f"{item['name']} {item['price'] / 100} ✕ {item['quantity']}    {item['sum'] / 100}\n")
+            add_items(item['name'], item['price'] / 100, item['quantity'], item['sum'] / 100, receipt_id)
         await message.answer(f'{goods}')
 
 

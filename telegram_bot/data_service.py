@@ -17,20 +17,32 @@ def add_user(user_id, create_date):
     cursor.close()
     cursor.connection.close()
 
-def add_check(check_fn, check_fd, check_fpd, chat_id, check_ofd, check_place, check_sum, check_date):
-    check_id = str(uuid.uuid4())
+def add_receipt(receipt_fn, receipt_fd, receipt_fpd, chat_id, receipt_ofd, receipt_place, receipt_sum, receipt_date, receipt_id):
     cursor = make_cursor()
     query = """ 
-    INSERT INTO "check" (check_id, check_fn, check_fd, check_fpd, chat_id, check_ofd, check_place, check_sum, check_date)
-    SELECT %(p_check_id)s, %(p_check_fn)s, %(p_check_fd)s, %(p_check_fpd)s, %(p_chat_id)s, %(p_check_ofd)s, %(p_check_place)s, %(p_check_sum)s, %(p_check_date)s
+    INSERT INTO receipt (receipt_id, receipt_fn, receipt_fd, receipt_fpd, chat_id, receipt_ofd, receipt_place, receipt_sum, receipt_date)
+    SELECT %(p_receipt_id)s, %(p_receipt_fn)s, %(p_receipt_fd)s, %(p_receipt_fpd)s, %(p_chat_id)s, %(p_receipt_ofd)s, %(p_receipt_place)s, %(p_receipt_sum)s, %(p_receipt_date)s
     WHERE NOT EXISTS (
-        SELECT 1 FROM "check" WHERE check_fn = %(p_check_fn)s OR check_fd = %(p_check_fd)s OR check_fpd = %(p_check_fpd)s
+        SELECT 1 FROM receipt WHERE receipt_fn = %(p_receipt_fn)s OR receipt_fd = %(p_receipt_fd)s OR receipt_fpd = %(p_receipt_fpd)s
     );
     """
-    cursor.execute(query,{'p_check_id' : check_id, 'p_check_fn': check_fn, 'p_check_fd' : check_fd, 'p_check_fpd' : check_fpd, 'p_chat_id' : chat_id, 'p_check_ofd' : check_ofd, 'p_check_place': check_place, 'p_check_sum': check_sum, 'p_check_date' : check_date})
+    cursor.execute(query,{'p_receipt_id' : receipt_id, 'p_receipt_fn': receipt_fn, 'p_receipt_fd' : receipt_fd, 'p_receipt_fpd' : receipt_fpd, 'p_chat_id' : chat_id, 'p_receipt_ofd' : receipt_ofd, 'p_receipt_place': receipt_place, 'p_receipt_sum': receipt_sum, 'p_receipt_date' : receipt_date})
     cursor.connection.commit()
     cursor.close()
     cursor.connection.close()
+
+def add_items(name, price, amount, sum, receipt_id):
+    item_id = str(uuid.uuid4())
+    cursor = make_cursor()
+    query = """
+    INSERT INTO receipt_item (item_name, item_price, item_amount, item_sum, item_id, receipt_id)
+    SELECT %(p_item_name)s, %(p_item_price)s, %(p_item_amount)s, %(p_item_sum)s, %(p_item_id)s, %(p_receipt_id)s
+    """
+    cursor.execute(query,{'p_item_name' : name, 'p_item_price': price, 'p_item_amount' : amount, 'p_item_sum' : sum, 'p_item_id' : item_id, 'p_receipt_id' : receipt_id})
+    cursor.connection.commit()
+    cursor.close()
+    cursor.connection.close()
+
 
     
 # if __name__ == '__main__':
