@@ -7,9 +7,8 @@ from io import BytesIO
 import numpy as np
 import requests
 from bs4 import BeautifulSoup
-from data_service import add_user, add_receipt, add_items
-import random
-import datetime
+from add_data import add_user, add_receipt, add_items, delete_user, find_receipt
+from give_data import give_all_data
 import uuid
 
 logging.basicConfig(level=logging.INFO)
@@ -18,9 +17,7 @@ bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
 
-
-    
-@dp.message_handler(commands=['info', 'help', 'start'])
+@dp.message_handler(commands=['info'])
 async def give_info(message: types.Message):
     await message.answer(f"Hi {message.from_user.first_name},\nthis bot takes qr-code and adds info about your purchase into database")
 
@@ -41,13 +38,28 @@ async def respond_photo(message: types.Message):
     else:
         receipt_place, receipt_items, receipt_sum, receipt_fd, receipt_fn, receipt_fpd, receipt_date = get_info(qr_code_text)
         receipt_id = str(uuid.uuid4())
-        add_receipt(receipt_fn, receipt_fd, receipt_fpd, tg_user_id, '1ofd', receipt_place, receipt_sum, receipt_date, receipt_id)
-        goods = ''
-        for item in receipt_items:
-            goods += (f"{item['name']} {item['price'] / 100} ✕ {item['quantity']}    {item['sum'] / 100}\n")
-            add_items(item['name'], item['price'] / 100, item['quantity'], item['sum'] / 100, receipt_id)
-        await message.answer(f'{goods}')
+        if not find_receipt(receipt_fn, receipt_fd, receipt_fpd):
+            add_receipt(receipt_fn, receipt_fd, receipt_fpd, tg_user_id, '1ofd', receipt_place, receipt_sum, receipt_date, receipt_id)
+            goods = ''
+            for item in receipt_items:
+                goods += (f"{item['name']} {item['price'] / 100} ✕ {item['quantity']}    {item['sum'] / 100}\n")
+                add_items(item['name'], item['price'] / 100, item['quantity'], item['sum'] / 100, receipt_id)
+            await message.answer(f'{goods}')
+        else:
+            await message.answer(f'dublicate receipt')
 
+
+@dp.message_handler(commands=['delete_my_data'])
+async def delete_data(message: types.Message):
+    tg_user_id = str(message.chat.id)
+    delete_user(tg_user_id)
+    await message.answer('your data was deleted successfully')
+
+@dp.message_handler(commands=['give_all_purches'])
+async def give_purches(message: types.Message):
+    tg_user_id = str(message.chat.id)
+    filename = give_all_data(tg_user_id)
+    await message.reply_document(open(filename, 'rb'))
 
 
 

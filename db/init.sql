@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS public.chat
     chat_id character varying(20) COLLATE pg_catalog."default" NOT NULL,
     create_date date NOT NULL,
     CONSTRAINT chat_pkey PRIMARY KEY (chat_id)
-)
+);
 
 CREATE TABLE IF NOT EXISTS public.receipt
 (
@@ -23,10 +23,8 @@ CREATE TABLE IF NOT EXISTS public.receipt
     CONSTRAINT pk_receipt_pkey PRIMARY KEY (receipt_id),
     CONSTRAINT ak_receipt UNIQUE (receipt_fn, receipt_fd, receipt_fpd),
     CONSTRAINT fk_receipt_chat FOREIGN KEY (chat_id)
-        REFERENCES public.chat (chat_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-)
+        REFERENCES public.chat (chat_id) ON DELETE CASCADE
+);
 
 CREATE TABLE IF NOT EXISTS public.receipt_item
 (
@@ -38,8 +36,6 @@ CREATE TABLE IF NOT EXISTS public.receipt_item
     receipt_id uuid NOT NULL,
     CONSTRAINT pk_item_pkey PRIMARY KEY (item_id),
     CONSTRAINT fk_item_receipt FOREIGN KEY (receipt_id)
-        REFERENCES public.receipt (receipt_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-)
+        REFERENCES public.receipt (receipt_id) ON DELETE CASCADE
+); 
 
